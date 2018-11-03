@@ -293,14 +293,6 @@ function fixedPeriod(d: number, qty: number): number {
   return out;
 }
 
-function clockInMillis(d: Date): number {
-  return
-    (d.getUTCHours() * 3600000) + 
-    (d.getUTCMinutes() * 60000) + 
-    (d.getUTCSeconds() * 1000) + 
-    (d.getUTCMilliseconds());
-}
-
 // {{{
 // Vendored date functions. date-fns, which codifies a bunch of well-known
 // stack overflow techniques for dealing with Javascript's fucking horrendous
@@ -331,12 +323,10 @@ function differenceInDays(d1: Date, d2: Date): number {
   var timestampLeft = startOfDayLeft.getTime();
   var timestampRight = startOfDayRight.getTime();
 
-  var offset = clockInMillis(d1) > clockInMillis(d2) ? -1 : 0;
-    
   // Round the number of days to the nearest integer
   // because the number of milliseconds in a day is not constant
   // (e.g. it's different in the day of the daylight saving time clock shift)
-  return Math.round((timestampLeft - timestampRight) / 86400000) + offset;
+  return Math.round((timestampLeft - timestampRight) / 86400000);
 }
 
 function startOfDay(d: Date) {
