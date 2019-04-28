@@ -348,7 +348,7 @@ test.each([
   [new Interval(2, Span.Month), new Interval(3, Span.Month), false],
   [new Interval(2, Span.Month), new Interval(4, Span.Month), true],
   [new Interval(2, Span.Month), new Interval(1, Span.Year), true],
-])('%s.%s.%s', (i, to, result) => {
+])('%s.%s.%s', (i: Interval, to: Interval, result: boolean) => {
   expect(i.canCombine(to)).toEqual(result);
 });
 
@@ -356,7 +356,7 @@ test.each([
   [2561, new Interval(1, Span.Minute)],
   [2817, new Interval(1, Span.Hour)],
   [3073, new Interval(1, Span.Day)],
-])('%d==%s', (input, out) => {
+])('%d==%s', (input: number, out: Interval) => {
   expect(Interval.decode(input).span).toEqual(out.span);
   expect(Interval.decode(input).qty).toEqual(out.qty);
   expect(Interval.decode(input).encode()).toEqual(input);

@@ -9,6 +9,23 @@ export enum Span {
   Year    = 15,
 }
 
+export const spans: Span[] = [
+  Span.Second,
+  Span.Minute,
+  Span.Hour,
+  Span.Day,
+  Span.Week,
+  Span.Month,
+  Span.Year,
+];
+
+export function formatSpan(span: Span): string {
+  if (spanStrings[span] === undefined) {
+    throw new RangeError("invalid span "+span);
+  }
+  return spanStrings[span];
+}
+
 export function epoch(): Date { return new Date(0); }
 
 const _epoch = new Date(0);
@@ -263,6 +280,7 @@ const spanInputStrings: {[x in Span]: string[]} = {
 };
 
 const spanInput: {[key: string]: Span} = {};
+
 for (const span in spanInputStrings) {
   spanInputStrings[span].map((v) => spanInput[v] = parseInt(span) as Span);
 }
