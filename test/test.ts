@@ -1,4 +1,4 @@
-import { Interval, Span } from "../src/interval";
+import { formatInterval, Interval, parseSpan, Span } from "../src/interval";
 
 function toDate(iso: string): Date {
   return new Date(Date.parse(iso));
@@ -6,6 +6,9 @@ function toDate(iso: string): Date {
 
 test('interval', () => {
   expect(new Interval(4, Span.Month).start(toDate("2017-07-01T00:00Z")))
+    .toEqual(toDate("2017-05-01T00:00Z"));
+
+  expect(new Interval({qty: 4, span: Span.Month}).start(toDate("2017-07-01T00:00Z")))
     .toEqual(toDate("2017-05-01T00:00Z"));
 
   expect(new Interval(3, Span.Week).start(toDate("2017-07-01T00:00Z")))
@@ -29,8 +32,10 @@ test('interval', () => {
     .toEqual(toDate("2017-06-26T02:00+10:00"));
 });
 
-test('interval', () => {
+
+test('interval string', () => {
   expect(new Interval(1, Span.Second).toString()).toEqual("1sec");
+  expect(formatInterval(new Interval(1, Span.Second))).toEqual("1sec");
   expect(new Interval(2, Span.Second).toString()).toEqual("2sec");
   expect(new Interval(1, Span.Minute).toString()).toEqual("1min");
   expect(new Interval(2, Span.Minute).toString()).toEqual("2min");
@@ -46,6 +51,11 @@ test('interval', () => {
   expect(new Interval(2, Span.Year).toString()).toEqual("2yr");
 });
 
+test('span parse', () => {
+  expect(parseSpan("min")).toEqual(Span.Minute);
+  expect(parseSpan("minute")).toEqual(Span.Minute);
+})
+
 /*
 test('sort', () => {
     in := []Interval{New(61, Minute), New(1, Hour), New(59, Minute)}
@@ -60,15 +70,15 @@ test('sort', () => {
 }
 */
 
-// Less-fucked Date.UTC variant that uses 1-indexed months like the
+// Less-borked Date.UTC variant that uses 1-indexed months like the
 // entire world does; this facilitates easier pasting of table-driven
 // test cases from the Go implementation.
-function utc(y, mo, d, h, min, s=0, msec=0) {
+function utc(y: number, mo: number, d: number, h: number, min: number, s=0, msec=0) {
   return Date.UTC(y, mo-1, d, h, min, s, msec);
 }
 
 // Accepts nanos instead of millis, to facilitate even easier pasting from Go.
-function utcns(y, mo, d, h, min, s=0, nsec=0) {
+function utcns(y: number, mo: number, d: number, h: number, min: number, s=0, nsec=0) {
   return utc(y, mo, d, h, min, s, nsec/1000000);
 }
 

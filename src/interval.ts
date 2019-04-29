@@ -26,6 +26,44 @@ export function formatSpan(span: Span): string {
   return spanStrings[span];
 }
 
+export function formatInterval(intvl: Interval | IntervalData) {
+ return intvl.qty.toString() + spanStrings[intvl.span]; 
+}
+
+// @deprecated use parseInterval
+export function parse(intvl: string): Interval {
+  return parseInterval(intvl);
+}
+
+export function parseSpan(span: string): Span {
+  const out = spanInput[span];
+  if (!out) {
+    throw new Error(`ts-interval: invalid span '${span}'`);
+  }
+  return out;
+}
+
+export function parseIntervalData(intvl: string): IntervalData {
+  intvl = intvl.trim();
+  const match = intvl.match(/^(\d+)/);
+  if (!match || match.length !== 2) {
+    throw new Error(`ts-interval: parse failed, could not find qty at the beginning of '${intvl}'`);
+  }
+
+  const num = match[0];
+  const rest = intvl.substr(num.length);
+  const qty = parseInt(num);
+  const span = spanInput[rest];
+  if (span == undefined) {
+    throw new Error(intvl);
+  }
+  return { qty, span };
+}
+
+export function parseInterval(intvl: string): Interval {
+  return new Interval(parseIntervalData(intvl));
+}
+
 export function epoch(): Date { return new Date(0); }
 
 const _epoch = new Date(0);
@@ -49,7 +87,7 @@ export interface IntervalData {
 export class Interval {
   private _qty: number;
   private _span: Span;
-  private _str: string = undefined;
+  private _str: string | undefined = undefined;
 
   constructor(data: IntervalData);
   constructor(qty: number, span: Span);
@@ -61,8 +99,11 @@ export class Interval {
       span = qtyOrData.span;
     } else {
       qty = qtyOrData;
+      if (!span) {
+        throw new Error("span missing");
+      }
     }
-    
+
     this._qty = qty;
     this._span = span;
     if (spanStrings[span] == undefined) {
@@ -93,7 +134,7 @@ export class Interval {
 
   public toString = (): string => { 
     if (this._str === undefined) {
-      this._str = this._qty.toString() + spanStrings[this._span];
+      this._str = formatInterval(this);
     }
     return this._str;
   }
@@ -255,19 +296,6 @@ export class Interval {
   }
 }
 
-export function parse(intvl: string): Interval {
-  intvl = intvl.trim();
-  const match = intvl.match(/^(\d+)/);
-  const num = match[0];
-  const rest = intvl.substr(num.length);
-  const period = parseInt(num);
-  const span = spanInput[rest];
-  if (span == undefined) {
-    throw new Error(intvl);
-  }
-  return new Interval(period, span);
-}
-
 const spanStrings: {[x in Span]: string} = {
   9: "sec",
   10: "min",
@@ -304,10 +332,12 @@ const spanInputStrings: {[x in Span]: string[]} = {
 const spanInput: {[key: string]: Span} = {};
 
 for (const span in spanInputStrings) {
-  spanInputStrings[span].map((v) => spanInput[v] = parseInt(span) as Span);
+  for (const inputString of (spanInputStrings as any)[span]) {
+    spanInput[inputString] = parseInt(span) as Span;
+  }
 }
 
-function isValidDate(d) {
+function isValidDate(d: any): d is Date {
   return d instanceof Date && !isNaN(d.getTime());
 }
 
