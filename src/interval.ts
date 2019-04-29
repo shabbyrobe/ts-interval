@@ -39,12 +39,30 @@ export const firstDayOfEpochWeek = startOfWeek(new Date(0));
 // day. It can not account for leap-seconds or leap-years.
 let intervalRefTime = new Date(Date.UTC(2018, 0, 1, 12, 0, 0));
 
+// IntervalData is included to play nicely with React/Redux-style apps that
+// can't cope with classes.
+export interface IntervalData {
+  readonly qty: number;
+  readonly span: Span;
+}
+
 export class Interval {
   private _qty: number;
   private _span: Span;
   private _str: string = undefined;
 
-  constructor(qty: number, span: Span) {
+  constructor(data: IntervalData);
+  constructor(qty: number, span: Span);
+
+  constructor(qtyOrData: number | IntervalData, span?: Span) {
+    let qty: number;
+    if (typeof qtyOrData === 'object') {
+      qty = qtyOrData.qty;
+      span = qtyOrData.span;
+    } else {
+      qty = qtyOrData;
+    }
+    
     this._qty = qty;
     this._span = span;
     if (spanStrings[span] == undefined) {
@@ -68,6 +86,10 @@ export class Interval {
 
   public get qty(): number { return this._qty; }
   public get span(): Span  { return this._span; }
+
+  public get data(): IntervalData {
+    return { span: this._span, qty: this._qty };
+  }
 
   public toString = (): string => { 
     if (this._str === undefined) {
@@ -313,7 +335,7 @@ function fixedPeriod(d: number, qty: number): number {
 
 // {{{
 // Vendored date functions. date-fns, which codifies a bunch of well-known
-// stack overflow techniques for dealing with Javascript's fucking horrendous
+// stack overflow techniques for dealing with Javascript's horrendous
 // Date type, doesn't handle our UTC-centric view of the world very well. It
 // has a nice literate API, so these are re-implementations of the functions we
 // need from there but without the bugs our use case flushes out.
